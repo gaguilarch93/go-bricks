@@ -1,0 +1,81 @@
+# golangci-lint configuration for go-bricks.
+# Schema v2 (golangci-lint >= 2.x). Validate with: golangci-lint config verify
+#
+# Goal: a high-signal, low-noise linter set appropriate for a zero-dependency,
+# standards-focused public library. Correctness, error-handling and security
+# linters are prioritised; cosmetic checks are kept conservative.
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  # "standard" = errcheck, govet, ineffassign, staticcheck, unused.
+  default: standard
+  enable:
+    - bodyclose      # ensure HTTP response bodies are closed
+    - copyloopvar    # detect unintended loop-variable copies
+    - errorlint      # correct error wrapping / errors.Is|As usage (we lean on this)
+    - gocritic       # opinionated correctness/style/performance diagnostics
+    - gosec          # security issues (relevant to the HMAC cursor code)
+    - misspell       # spelling mistakes in comments/strings
+    - nilerr         # returning nil after a non-nil error check
+    - prealloc       # slices that could be preallocated
+    - predeclared    # shadowing of predeclared identifiers
+    - revive         # golint successor: exported docs, naming, etc.
+    - unconvert      # redundant type conversions
+    - unparam        # unused function parameters / results
+
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - performance
+        - style
+      disabled-checks:
+        - unnamedResult
+        - hugeParam      # value-semantics public API is intentional (immutable, nil-free)
+    govet:
+      enable:
+        - shadow
+    revive:
+      rules:
+        - name: exported
+          arguments:
+            - disableStutteringCheck
+        - name: package-comments
+        - name: unexported-return
+        - name: error-strings
+        - name: error-return
+        - name: context-as-argument
+        - name: indent-error-flow
+
+  exclusions:
+    generated: lax
+    rules:
+      # Test files: relax checks that add noise without improving test quality.
+      - path: _test\.go
+        linters:
+          - bodyclose
+          - errcheck
+          - gocritic
+          - gosec
+          - prealloc
+          - unparam
+      # Benchmarks intentionally discard results.
+      - path: bench_test\.go
+        linters:
+          - errcheck
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/gaguilarch93/go-bricks

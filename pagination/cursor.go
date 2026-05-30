@@ -176,7 +176,7 @@ func (c CursorCodec) Decode(s string) (CursorPayload, error) {
 	dec.UseNumber() // preserve int64 precision in CursorPayload
 	var env envelope
 	if err := dec.Decode(&env); err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrInvalidCursor, err)
+		return nil, fmt.Errorf("%w: %w", ErrInvalidCursor, err)
 	}
 	if env.V != 1 {
 		return nil, fmt.Errorf("%w: unsupported version %d", ErrInvalidCursor, env.V)
