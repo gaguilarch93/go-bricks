@@ -10,4 +10,5 @@ Go Bricks is a collection of modular building blocks for Go. It provides reusabl
 ## Modules
 
 - [`pagination`](pagination/) — production-ready offset & cursor pagination (JSON:API / RFC 8288), opaque HMAC-signed cursors, and HATEOAS links.
+- [`usecase`](usecase/) — tiny clean-architecture use case interfaces with optional, automatic input validation.
 
