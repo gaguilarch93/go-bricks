@@ -204,3 +204,56 @@ func (in ctxAwareInput) Validate(ctx context.Context) error {
 	}
 	return nil
 }
+
+// --- nil func adapters ---
+
+func TestRun_NilCommandFuncReturnsErr(t *testing.T) {
+	var f usecase.CommandFunc[noValidateInput] // typed-nil func
+	if err := usecase.Run[noValidateInput](context.Background(), f, noValidateInput{}); !errors.Is(err, usecase.ErrNilUseCase) {
+		t.Fatalf("expected ErrNilUseCase for nil CommandFunc, got %v", err)
+	}
+}
+
+func TestRunResult_NilQueryFuncReturnsErr(t *testing.T) {
+	var f usecase.QueryFunc[noValidateInput, int] // typed-nil func
+	out, err := usecase.RunResult[noValidateInput, int](context.Background(), f, noValidateInput{})
+	if !errors.Is(err, usecase.ErrNilUseCase) {
+		t.Fatalf("expected ErrNilUseCase for nil QueryFunc, got %v", err)
+	}
+	if out != 0 {
+		t.Fatalf("expected zero value, got %d", out)
+	}
+}
+
+func TestNilCommandFunc_ExecuteDirect(t *testing.T) {
+	var f usecase.CommandFunc[int]
+	if err := f.Execute(context.Background(), 1); !errors.Is(err, usecase.ErrNilUseCase) {
+		t.Fatalf("nil CommandFunc.Execute should return ErrNilUseCase, got %v", err)
+	}
+}
+
+// --- validation cause extraction via errors.As ---
+
+type causeError struct{ field string }
+
+func (e *causeError) Error() string { return "invalid field: " + e.field }
+
+type causeInput struct{}
+
+func (causeInput) Validate(ctx context.Context) error {
+	return &causeError{field: "email"}
+}
+
+func TestValidation_CauseRecoverableViaErrorsAs(t *testing.T) {
+	err := usecase.Validate(context.Background(), causeInput{})
+	if !errors.Is(err, usecase.ErrValidation) {
+		t.Fatalf("expected ErrValidation, got %v", err)
+	}
+	var ce *causeError
+	if !errors.As(err, &ce) {
+		t.Fatalf("expected to recover *causeError via errors.As, got %v", err)
+	}
+	if ce.field != "email" {
+		t.Fatalf("cause not preserved: %+v", ce)
+	}
+}

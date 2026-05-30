@@ -18,7 +18,7 @@ type Validator interface {
 // input and reports only success or failure. Use it for writes/mutations that
 // don't return a value (CQRS "command").
 //
-// I is the input type. Use a single struct for I so the signature stays stable
+// "I" is the input type. Use a single struct for "I" so the signature stays stable
 // as the use case grows new parameters.
 type Command[I any] interface {
 	Execute(ctx context.Context, input I) error
@@ -35,15 +35,24 @@ type Query[I, O any] interface {
 // the http.HandlerFunc pattern.
 type CommandFunc[I any] func(ctx context.Context, input I) error
 
-// Execute calls f(ctx, input).
+// Execute calls f(ctx, input). A nil CommandFunc returns ErrNilUseCase instead
+// of panicking.
 func (f CommandFunc[I]) Execute(ctx context.Context, input I) error {
+	if f == nil {
+		return ErrNilUseCase
+	}
 	return f(ctx, input)
 }
 
 // QueryFunc adapts an ordinary function to the Query interface.
 type QueryFunc[I, O any] func(ctx context.Context, input I) (O, error)
 
-// Execute calls f(ctx, input).
+// Execute calls f(ctx, input). A nil QueryFunc returns the zero value and
+// ErrNilUseCase instead of panicking.
 func (f QueryFunc[I, O]) Execute(ctx context.Context, input I) (O, error) {
+	if f == nil {
+		var zero O
+		return zero, ErrNilUseCase
+	}
 	return f(ctx, input)
 }

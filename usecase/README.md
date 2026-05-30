@@ -65,7 +65,7 @@ func (uc CreateUser) Execute(ctx context.Context, in CreateUserInput) (string, e
 id, err := usecase.RunResult[CreateUserInput, string](ctx, CreateUser{repo}, in)
 switch {
 case errors.Is(err, usecase.ErrValidation):
-    // 400 — input failed validation; inspect the cause with errors.Unwrap/As.
+    // 400 — input failed validation; recover the cause with errors.As.
 case err != nil:
     // 500 — execution error.
 default:
@@ -96,8 +96,10 @@ uc := usecase.CommandFunc[CreateUserInput](func(ctx context.Context, in CreateUs
 - `Run` / `RunResult` call `Validate` **only** when the input implements
   `Validator`; otherwise the input is considered valid.
 - A validation failure is wrapped as `ErrValidation` (the original cause stays
-  reachable via `errors.Unwrap` / `errors.As`); `Execute` is **not** called.
-- A nil use case returns `ErrNilUseCase`.
+  reachable via `errors.As` / `errors.Is`; note `errors.Unwrap` returns nil
+  because the error joins two wrapped errors); `Execute` is **not** called.
+- A nil use case — a nil interface or a nil `CommandFunc`/`QueryFunc` — returns
+  `ErrNilUseCase`.
 - You can validate without running via `usecase.Validate(ctx, input)`.
 
 ### Method-set gotcha
