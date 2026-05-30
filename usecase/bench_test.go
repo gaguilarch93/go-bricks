@@ -26,7 +26,7 @@ var errBoomBench = context.Canceled // any non-nil error reused to avoid allocs
 
 func BenchmarkRun_NoValidator(b *testing.B) {
 	ctx := context.Background()
-	uc := usecase.Func[benchPlain](func(ctx context.Context, in benchPlain) error { return nil })
+	uc := usecase.CommandFunc[benchPlain](func(ctx context.Context, in benchPlain) error { return nil })
 	in := benchPlain{n: 1}
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -37,7 +37,7 @@ func BenchmarkRun_NoValidator(b *testing.B) {
 
 func BenchmarkRun_WithValidator(b *testing.B) {
 	ctx := context.Background()
-	uc := usecase.Func[benchInput](func(ctx context.Context, in benchInput) error { return nil })
+	uc := usecase.CommandFunc[benchInput](func(ctx context.Context, in benchInput) error { return nil })
 	in := benchInput{ok: true}
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -48,7 +48,7 @@ func BenchmarkRun_WithValidator(b *testing.B) {
 
 func BenchmarkRunResult_WithValidator(b *testing.B) {
 	ctx := context.Background()
-	uc := usecase.ResultFunc[benchInput, int](func(ctx context.Context, in benchInput) (int, error) { return 1, nil })
+	uc := usecase.QueryFunc[benchInput, int](func(ctx context.Context, in benchInput) (int, error) { return 1, nil })
 	in := benchInput{ok: true}
 	b.ReportAllocs()
 	b.ResetTimer()

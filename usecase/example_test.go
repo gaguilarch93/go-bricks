@@ -21,7 +21,7 @@ func (in createUserInput) Validate(ctx context.Context) error {
 	return nil
 }
 
-// createUser is a ResultUseCase that returns the new user's ID.
+// createUser is a Query that returns the new user's ID.
 type createUser struct{}
 
 func (createUser) Execute(ctx context.Context, in createUserInput) (string, error) {
@@ -43,7 +43,7 @@ func ExampleRunResult() {
 	// true
 }
 
-// deleteUser is a command-style UseCase (no return value).
+// deleteUser is a Command (no return value).
 type deleteUser struct{}
 
 func (deleteUser) Execute(ctx context.Context, id string) error {

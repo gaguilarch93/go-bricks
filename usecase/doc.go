@@ -3,8 +3,8 @@
 //
 // It provides two generic interfaces:
 //
-//   - UseCase[I]          — a command: input in, error out.
-//   - ResultUseCase[I, O] — a query, or a command that yields a value:
+//   - Command[I]    — a command: input in, error out.
+//   - Query[I, O]   — a read, or a command that yields a value:
 //     input in, (result, error) out.
 //
 // Inputs may OPTIONALLY implement Validator to validate themselves. The Run and

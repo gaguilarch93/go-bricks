@@ -27,7 +27,7 @@ func Validate(ctx context.Context, input any) error {
 //   - an error wrapping ErrValidation if input validation fails (Execute is
 //     not called);
 //   - otherwise whatever uc.Execute returns.
-func Run[I any](ctx context.Context, uc UseCase[I], input I) error {
+func Run[I any](ctx context.Context, uc Command[I], input I) error {
 	if uc == nil {
 		return ErrNilUseCase
 	}
@@ -42,7 +42,7 @@ func Run[I any](ctx context.Context, uc UseCase[I], input I) error {
 //
 // On a nil use case or a validation failure it returns the zero value of O
 // together with the error (ErrNilUseCase or an ErrValidation-wrapped cause).
-func RunResult[I, O any](ctx context.Context, uc ResultUseCase[I, O], input I) (O, error) {
+func RunResult[I, O any](ctx context.Context, uc Query[I, O], input I) (O, error) {
 	if uc == nil {
 		var zero O
 		return zero, ErrNilUseCase

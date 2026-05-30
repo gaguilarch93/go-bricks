@@ -14,35 +14,36 @@ type Validator interface {
 	Validate(ctx context.Context) error
 }
 
-// UseCase is a command-style use case: it performs the action described by the
-// input and reports only success or failure.
+// Command is a command-style use case: it performs the action described by the
+// input and reports only success or failure. Use it for writes/mutations that
+// don't return a value (CQRS "command").
 //
 // I is the input type. Use a single struct for I so the signature stays stable
 // as the use case grows new parameters.
-type UseCase[I any] interface {
+type Command[I any] interface {
 	Execute(ctx context.Context, input I) error
 }
 
-// ResultUseCase is a use case that returns a result of type O along with an
-// error — for example, a query, or a command that yields a value such as a
-// generated identifier.
-type ResultUseCase[I, O any] interface {
+// Query is a use case that returns a result of type O along with an error — for
+// example, a read, or a command that yields a value such as a generated
+// identifier (CQRS "query").
+type Query[I, O any] interface {
 	Execute(ctx context.Context, input I) (O, error)
 }
 
-// Func adapts an ordinary function to the UseCase interface, mirroring the
-// http.HandlerFunc pattern.
-type Func[I any] func(ctx context.Context, input I) error
+// CommandFunc adapts an ordinary function to the Command interface, mirroring
+// the http.HandlerFunc pattern.
+type CommandFunc[I any] func(ctx context.Context, input I) error
 
 // Execute calls f(ctx, input).
-func (f Func[I]) Execute(ctx context.Context, input I) error {
+func (f CommandFunc[I]) Execute(ctx context.Context, input I) error {
 	return f(ctx, input)
 }
 
-// ResultFunc adapts an ordinary function to the ResultUseCase interface.
-type ResultFunc[I, O any] func(ctx context.Context, input I) (O, error)
+// QueryFunc adapts an ordinary function to the Query interface.
+type QueryFunc[I, O any] func(ctx context.Context, input I) (O, error)
 
 // Execute calls f(ctx, input).
-func (f ResultFunc[I, O]) Execute(ctx context.Context, input I) (O, error) {
+func (f QueryFunc[I, O]) Execute(ctx context.Context, input I) (O, error) {
 	return f(ctx, input)
 }

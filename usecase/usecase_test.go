@@ -38,11 +38,11 @@ func (in *ptrValidateInput) Validate(ctx context.Context) error {
 
 var errBoom = errors.New("boom")
 
-// --- UseCase / Run ---
+// --- Command / Run ---
 
 func TestRun_NoValidatorExecutes(t *testing.T) {
 	called := false
-	uc := usecase.Func[noValidateInput](func(ctx context.Context, in noValidateInput) error {
+	uc := usecase.CommandFunc[noValidateInput](func(ctx context.Context, in noValidateInput) error {
 		called = true
 		if in.v != 7 {
 			t.Fatalf("input not threaded: %+v", in)
@@ -59,7 +59,7 @@ func TestRun_NoValidatorExecutes(t *testing.T) {
 
 func TestRun_ValidationPassesThenExecutes(t *testing.T) {
 	called := false
-	uc := usecase.Func[valueValidateInput](func(ctx context.Context, in valueValidateInput) error {
+	uc := usecase.CommandFunc[valueValidateInput](func(ctx context.Context, in valueValidateInput) error {
 		called = true
 		return nil
 	})
@@ -72,7 +72,7 @@ func TestRun_ValidationPassesThenExecutes(t *testing.T) {
 }
 
 func TestRun_ValidationFailsShortCircuits(t *testing.T) {
-	uc := usecase.Func[valueValidateInput](func(ctx context.Context, in valueValidateInput) error {
+	uc := usecase.CommandFunc[valueValidateInput](func(ctx context.Context, in valueValidateInput) error {
 		t.Fatal("execute must not run when validation fails")
 		return nil
 	})
@@ -83,7 +83,7 @@ func TestRun_ValidationFailsShortCircuits(t *testing.T) {
 }
 
 func TestRun_PropagatesExecuteError(t *testing.T) {
-	uc := usecase.Func[noValidateInput](func(ctx context.Context, in noValidateInput) error {
+	uc := usecase.CommandFunc[noValidateInput](func(ctx context.Context, in noValidateInput) error {
 		return errBoom
 	})
 	err := usecase.Run[noValidateInput](context.Background(), uc, noValidateInput{})
@@ -96,16 +96,16 @@ func TestRun_PropagatesExecuteError(t *testing.T) {
 }
 
 func TestRun_NilUseCase(t *testing.T) {
-	var uc usecase.UseCase[noValidateInput]
+	var uc usecase.Command[noValidateInput]
 	if err := usecase.Run[noValidateInput](context.Background(), uc, noValidateInput{}); !errors.Is(err, usecase.ErrNilUseCase) {
 		t.Fatalf("expected ErrNilUseCase, got %v", err)
 	}
 }
 
-// --- ResultUseCase / RunResult ---
+// --- Query / RunResult ---
 
 func TestRunResult_ReturnsValue(t *testing.T) {
-	uc := usecase.ResultFunc[valueValidateInput, string](func(ctx context.Context, in valueValidateInput) (string, error) {
+	uc := usecase.QueryFunc[valueValidateInput, string](func(ctx context.Context, in valueValidateInput) (string, error) {
 		return "done", nil
 	})
 	out, err := usecase.RunResult[valueValidateInput, string](context.Background(), uc, valueValidateInput{ok: true})
@@ -118,7 +118,7 @@ func TestRunResult_ReturnsValue(t *testing.T) {
 }
 
 func TestRunResult_ValidationFailsReturnsZero(t *testing.T) {
-	uc := usecase.ResultFunc[valueValidateInput, string](func(ctx context.Context, in valueValidateInput) (string, error) {
+	uc := usecase.QueryFunc[valueValidateInput, string](func(ctx context.Context, in valueValidateInput) (string, error) {
 		t.Fatal("execute must not run when validation fails")
 		return "x", nil
 	})
@@ -132,7 +132,7 @@ func TestRunResult_ValidationFailsReturnsZero(t *testing.T) {
 }
 
 func TestRunResult_NilUseCase(t *testing.T) {
-	var uc usecase.ResultUseCase[noValidateInput, int]
+	var uc usecase.Query[noValidateInput, int]
 	out, err := usecase.RunResult[noValidateInput, int](context.Background(), uc, noValidateInput{})
 	if !errors.Is(err, usecase.ErrNilUseCase) {
 		t.Fatalf("expected ErrNilUseCase, got %v", err)
@@ -174,7 +174,7 @@ func TestValidate_PointerReceiverMethodSet(t *testing.T) {
 }
 
 func TestRun_PointerInputIsValidated(t *testing.T) {
-	uc := usecase.Func[*ptrValidateInput](func(ctx context.Context, in *ptrValidateInput) error {
+	uc := usecase.CommandFunc[*ptrValidateInput](func(ctx context.Context, in *ptrValidateInput) error {
 		t.Fatal("execute must not run when pointer validation fails")
 		return nil
 	})

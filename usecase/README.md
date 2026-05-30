@@ -5,8 +5,8 @@ a clean / hexagonal architecture, with **optional, automatic input validation**.
 
 ## Why
 
-- **Two shapes, no boilerplate**: a command (`UseCase[I]`) and a value-returning
-  use case (`ResultUseCase[I, O]`).
+- **Two shapes, no boilerplate**: a command (`Command[I]`) and a value-returning
+  query (`Query[I, O]`) — the CQRS pairing.
 - **Validation that's opt-in per input**: an input that implements `Validator`
   is validated automatically before the use case runs — others just run.
 - **Composable**: the interfaces are intentionally minimal, so they layer
@@ -23,12 +23,12 @@ go get github.com/gaguilarch93/go-bricks/usecase
 
 ```go
 // Command: input in, error out.
-type UseCase[I any] interface {
+type Command[I any] interface {
     Execute(ctx context.Context, input I) error
 }
 
 // Query / value-returning command: input in, (result, error) out.
-type ResultUseCase[I, O any] interface {
+type Query[I, O any] interface {
     Execute(ctx context.Context, input I) (O, error)
 }
 
@@ -84,12 +84,12 @@ err := usecase.Run[string](ctx, DeleteUser{repo}, userID)
 Wrap a plain function as a use case (like `http.HandlerFunc`):
 
 ```go
-uc := usecase.Func[CreateUserInput](func(ctx context.Context, in CreateUserInput) error {
+uc := usecase.CommandFunc[CreateUserInput](func(ctx context.Context, in CreateUserInput) error {
     return nil
 })
 ```
 
-`usecase.ResultFunc[I, O]` does the same for value-returning use cases.
+`usecase.QueryFunc[I, O]` does the same for value-returning queries.
 
 ## Validation semantics
 
